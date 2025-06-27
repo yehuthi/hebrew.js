@@ -70,3 +70,58 @@ export function remove_diacritics(
 ): string {
 	return [...input].filter(char => !type(char)).join("");
 }
+
+/**
+ * Converts a character code from Hebrew script to Paleo-Hebrew script.
+ *
+ * This function is unchecked, meaning it assumes the character code belongs
+ * to the Hebrew script, and otherwise returns an undefined value.
+ */
+export function char_code_to_paleo_unchecked(char_code: number): number {
+	return char_code <= 0x05d9
+		? char_code + 0x10330
+		: char_code >= 0x05e6
+		? char_code + 0x1032b
+		: [
+				0x1090a, 0x1090a, 0x1090b, 0x1090c, 0x1090c, 0x1090d, 0x1090d, 0x1090e,
+				0x1090f, 0x10910, 0x10910, 0x10911,
+		  ][char_code - 0x05da];
+}
+
+/**
+ * Converts a character code from Hebrew script to Paleo-Hebrew script.
+ *
+ * If the character code is not in the Hebrew script, returns undefined.
+ */
+export function char_code_to_paleo(char_code: number): number | undefined {
+	return 0x05d0 <= char_code && char_code <= 0x05ea
+		? char_code_to_paleo_unchecked(char_code)
+		: undefined;
+}
+
+/**
+ * Converts the given character from Hebrew script to Paleo-Hebrew script.
+ *
+ * This function is unchecked, meaning it assumes the character belongs
+ * to the Hebrew script, and otherwise returns an undefined value.
+ */
+export function char_to_paleo_unchecked(char: string): string {
+	return String.fromCodePoint(char_code_to_paleo_unchecked(char.charCodeAt(0)));
+}
+
+/**
+ * Converts a character from Hebrew script to Paleo-Hebrew script.
+ *
+ * If the character code is not in the Hebrew script, returns undefined.
+ */
+export function char_to_paleo(char: string): string | undefined {
+	const paleoCode = char_code_to_paleo(char.charCodeAt(0));
+	return paleoCode ? String.fromCodePoint(paleoCode) : undefined;
+}
+
+/** Replaces the Hebrew characters in a string to their Paleo-Hebrew equivalent. */
+export function to_paleo(str: string): string {
+	return [...str]
+		.map(x => char_to_paleo(x) ?? x)
+		.join("");
+}
